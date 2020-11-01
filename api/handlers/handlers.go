@@ -7,7 +7,7 @@ import (
 	"github.com/Jose-Huerta-WebBeds/GoTraining1/application/services"
 )
 
-// "/"
+// "/count"
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%d", services.Counter())
 }
