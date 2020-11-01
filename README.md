@@ -1,2 +1,7 @@
 # GoTraining1
-Create a simple HTTP server with DDOS protection
+I tried to create an organized folder structure... maybe a bit overengineered. 
+
+Missing:
+* Control the limit of calls
+* Stress test
+* Integration test (Calling the server end-end)
