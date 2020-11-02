@@ -3,22 +3,24 @@ package server
 import (
 	"net"
 	"net/http"
-
-	"github.com/Jose-Huerta-WebBeds/GoTraining1/api/handlers"
+	"sync/atomic"
 )
 
 //Server an HTTP server with protections
 type Server struct {
-	httpServer *http.Server
-	port       string
-	protocol   string
+	httpServer         *http.Server
+	port               string
+	protocol           string
+	concurrentSessions int64
+	limit              int
 }
 
 //NewServer Creates a new server and configures it
-func NewServer(protocol string, port string, handler http.Handler) (*Server, error) {
+func NewServer(protocol string, port string, handler http.Handler, limit int) (*Server, error) {
 	s := new(Server)
+	s.limit = limit
 	s.httpServer = new(http.Server)
-	s.httpServer.Handler = s.preHandler(handlers.Handler())
+	s.httpServer.Handler = s.preHandler(handler)
 	s.port = port
 	s.protocol = protocol
 	return s, nil
@@ -39,11 +41,11 @@ func (s *Server) preHandler(trueHandler http.Handler) *http.ServeMux {
 	mux := new(http.ServeMux)
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		allow := s.preHandlerLimiter()
-		defer s.postHandlerLimiter()
+		allow, status := s.preHandlerLimiter() //logic injected before
+		defer s.postHandlerLimiter()           //logic injected after
 
 		if allow != true {
-			http.Error(w, http.StatusText(429), http.StatusTooManyRequests)
+			http.Error(w, http.StatusText(status), status)
 			return
 		}
 
@@ -54,10 +56,16 @@ func (s *Server) preHandler(trueHandler http.Handler) *http.ServeMux {
 	return mux
 }
 
-func (s *Server) preHandlerLimiter() bool {
-	return false
+//Here we can implement any logic for limiting, like concurrent threads,
+//or limit req/sec, per IP (well it would need some arameters...)
+func (s *Server) preHandlerLimiter() (bool, int) {
+	a := int(atomic.AddInt64(&s.concurrentSessions, 1))
+	if a > s.limit {
+		return false, http.StatusTooManyRequests
+	}
+	return true, 0
 }
 
 func (s *Server) postHandlerLimiter() {
-
+	atomic.AddInt64(&s.concurrentSessions, -1)
 }

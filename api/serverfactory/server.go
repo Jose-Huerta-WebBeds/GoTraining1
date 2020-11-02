@@ -8,10 +8,11 @@ import (
 const (
 	protocol = "tcp"
 	port     = ":8090"
+	limit    = 1
 )
 
 //StartMainServer creates and Starts the httpServer
 func StartMainServer() {
-	s, _ := server.NewServer(protocol, port, handlers.Handler())
+	s, _ := server.NewServer(protocol, port, handlers.Handler(), limit)
 	s.Start()
 }
