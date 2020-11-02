@@ -1,9 +1,11 @@
 package main
 
-import "github.com/Jose-Huerta-WebBeds/GoTraining1/infrastructure/server"
+import (
+	"github.com/Jose-Huerta-WebBeds/GoTraining1/api/serverfactory"
+)
 
 func main() {
 
-	server.StartDefaultServer()
+	serverfactory.StartMainServer()
 
 }

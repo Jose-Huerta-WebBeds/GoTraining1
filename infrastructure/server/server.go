@@ -7,17 +7,29 @@ import (
 	"github.com/Jose-Huerta-WebBeds/GoTraining1/api/handlers"
 )
 
-//StartServer creates an initialize a Server object
-func StartServer(protocol string, port string) error {
-	server := new(http.Server)
-	server = new(http.Server)
-	server.Handler = handlers.Handler()
-	netPort, _ := net.Listen(protocol, port)
-	server.Serve(netPort)
-	return nil
+//Server an HTTP server with protections
+type Server struct {
+	httpServer *http.Server
+	port       string
+	protocol   string
 }
 
-//StartDefaultServer creates a new server with all the default values
-func StartDefaultServer() error {
-	return StartServer("tcp", ":8090")
+//NewServer Creates a new server and configures it
+func NewServer(protocol string, port string, handler http.Handler) (*Server, error) {
+	s := new(Server)
+	s.httpServer = new(http.Server)
+	s.httpServer.Handler = handlers.Handler()
+	s.port = port
+	s.protocol = protocol
+	return s, nil
+}
+
+//Start starts the server
+func (s *Server) Start() error {
+	netPort, err := net.Listen(s.protocol, s.port)
+	if err != nil {
+		return err
+	}
+	s.httpServer.Serve(netPort)
+	return nil
 }
