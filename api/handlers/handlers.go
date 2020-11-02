@@ -8,7 +8,7 @@ import (
 )
 
 // "/count"
-func rootHandler(w http.ResponseWriter, r *http.Request) {
+func countHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "%d", services.Counter())
 }
 
@@ -16,7 +16,7 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 func Handler() *http.ServeMux {
 	mux := new(http.ServeMux)
 
-	mux.HandleFunc("/count", rootHandler)
+	mux.HandleFunc("/count", countHandler)
 
 	return mux
 }

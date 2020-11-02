@@ -18,7 +18,7 @@ type Server struct {
 func NewServer(protocol string, port string, handler http.Handler) (*Server, error) {
 	s := new(Server)
 	s.httpServer = new(http.Server)
-	s.httpServer.Handler = handlers.Handler()
+	s.httpServer.Handler = s.preHandler(handlers.Handler())
 	s.port = port
 	s.protocol = protocol
 	return s, nil
@@ -32,4 +32,32 @@ func (s *Server) Start() error {
 	}
 	s.httpServer.Serve(netPort)
 	return nil
+}
+
+//this pre Handler can inject any logic before or after the real handler
+func (s *Server) preHandler(trueHandler http.Handler) *http.ServeMux {
+	mux := new(http.ServeMux)
+
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		allow := s.preHandlerLimiter()
+		defer s.postHandlerLimiter()
+
+		if allow != true {
+			http.Error(w, http.StatusText(429), http.StatusTooManyRequests)
+			return
+		}
+
+		trueHandler.ServeHTTP(w, r)
+
+	})
+
+	return mux
+}
+
+func (s *Server) preHandlerLimiter() bool {
+	return false
+}
+
+func (s *Server) postHandlerLimiter() {
+
 }
